@@ -19,6 +19,9 @@ else:
         Transmissionmodel, Sdata.view(float), f=fVNA/1e9, usecpu=6, p0=p0)
     pbest, pbesterr = cache_pbest(fname, pbest, pbesterr)
 ```
+
+(Note: The walruss operator `:=` (assignment within expression) requires
+Python 3.8 or higher.)
 """
 
 import os
