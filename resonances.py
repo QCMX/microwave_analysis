@@ -20,7 +20,7 @@ to undo this expansion by doing applying `.view(complex)`
 
 ### Units
 
-They the factors of $2\pi$ have to cancel out, you can either use quantities in
+The factors of $2\pi$ have to cancel out, you can either use quantities in
 angular units (i.e. $\omega$, $\kappa$, delay $t_d/2\pi$) or frequencies
 (i.e. $f$, $f_r$, width, delay $t_d$). Fit functions here are written in the
 latter.
@@ -35,7 +35,7 @@ $$A (1 + A_\text{slope} (f - f_r))  e^{i (2\pi t_d (f-f_r) + \theta)}$$
 The number of fit parameters in `scipy.optimize.curve_fit()` is either all, or
 the length of `p0`. So you can only vary the first few parameters of the
 function. The parameters are ordered so that the ones more likely to be fixed
-are in the beginning of the argument list.
+are in the end of the argument list.
 
 ### Tips
 

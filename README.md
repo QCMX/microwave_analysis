@@ -1,7 +1,13 @@
 # gatemon-analysis
 Library functions to fit and plot measurement data from microwave spectroscopy
 
-Some fit models for different microwave resonances.  Tools to run lmfit on large datasets.
+The modules are
+- `microwave_analysis.resonances` with fit functions for various complex
+  valued resonance shapes and factory functions to make `lmfit` models for
+  the fit functions.
+- `microwave_analysis.lmfitmany` with functions to run the same `lmfit` model
+  along the last axis of a large dataset. Can also run in multiple
+  subprocesses to parallelize on multiple CPU cores.
 
 To make use of this package, either
 - Put it in the same folder as the script where you try to import it.
