@@ -11,11 +11,13 @@ See Section 4.4 of "Microwave Engineering" by David Pozar (Wiley),
 and Appendix B of "Asymmetric Passive Components in Microwave Integrated Circuits" by Hee-Ran Ahn (Wiley).
 
 Note: a reciprocal network (no active components, ferrites, or plasma) fulfills:
+
 - Z is symmetric (Zij = Zji)
 - Y is symmetric (Yij = Yji)
 - S is symmetric (Sij = Sji)
 
 Lossless network fulfills:
+
 - Re Zij = 0 for any i, j
 - Re Yij = 0 for any i, j
 - S is unitary
@@ -128,15 +130,13 @@ def S_to_Z(S, Z0):
 
 def Z_to_Ztee(Z):
     """
-    Convert impedance matrix Z to T-topology:
+    Convert impedance matrix Z to T-topology::
 
-    ```
-    --Z1---Z2--
-         |
-         Z3
-         |
-    -----------
-    ```
+        --Z1---Z2--
+             |
+             Z3
+             |
+        -----------
 
     This requires impedance matrix to be symmetric, i.e. no active components.
 
@@ -182,13 +182,11 @@ def tline_ABCD(beta_l, Z0):
 
 def impedance_ABCD(Z):
     """
-    ABCD matrix of impedance Z connecting two ports.
+    ABCD matrix of impedance Z connecting two ports.::
 
-    ```
-    --Z--
+        --Z--
 
-    -----
-    ```
+        -----
 
     Parameters
     ----------
@@ -207,15 +205,13 @@ def impedance_ABCD(Z):
 
 def admittance_ABCD(Y):
     """
-    ABCD matrix of admittance Y connecting two ports.
+    ABCD matrix of admittance Y connecting two ports.::
 
-    ```
-    -----
-      |
-      Y
-      |
-    ------
-    ```
+        -----
+          |
+          Y
+          |
+        ------
 
     Parameters
     ----------
@@ -234,15 +230,13 @@ def admittance_ABCD(Y):
 
 def Ztee_ABCD(Z1, Z2, Z3):
     """
-    ABCD matrix of impedance T-topology
+    ABCD matrix of impedance T-topology::
 
-    ```
-    --Z1---Z2--
-         |
-         Z3
-         |
-    -----------
-    ```
+        --Z1---Z2--
+             |
+             Z3
+             |
+        -----------
 
     Parameters
     ----------
