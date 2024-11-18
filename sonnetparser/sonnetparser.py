@@ -179,11 +179,14 @@ def load_sonnet_output_Sparam(fname, pnames=[], columnfmt=None):
             fmt = columnfmt
         for i in range(nports):
             for j in range(nports):
-                colidx = (i * nports + j) * 2
+                colidx = 1 + (i * nports + j) * 2
                 if fmt == 'MAG-ANG':
-                    assert dat[:,colidx] >= 0
-                    assert -180 <= dat[:,colidx] <= 180
+                    assert np.all(dat[:,colidx] >= 0)
+                    assert np.all(-180 <= dat[:,colidx+1]) and np.all(dat[:colidx+1] <= 180)
                     Sdata[pidx][maskleft,i,j] = dat[:,colidx] * np.exp(1j*dat[:,colidx+1]/180*np.pi)
+                elif fmt == 'DB-ANG':
+                    assert np.all(-180 <= dat[:,colidx+1]) and np.all(dat[:colidx+1] <= 180)
+                    Sdata[pidx][maskleft,i,j] = 10**(dat[:,colidx]/20) * np.exp(1j*dat[:,colidx+1]/180*np.pi)
                 elif fmt == 'RE-IM':
                     Sdata[pidx][maskleft,i,j] = dat[:,colidx] + 1j*dat[:,colidx+1]
                 else:
@@ -239,7 +242,7 @@ def load_sonnet_graph_csv(fname):
                 })
             else:
                 values = [float(v) for v in line.split(',')]
-                chunks[-1]['lines'].append(values)
+                chunks[-1]['data'].append(values)
 
     # Convert data to numpy arrays
     for chunk in chunks:
