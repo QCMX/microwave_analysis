@@ -181,7 +181,7 @@ def load_sonnet_output_Sparam(fname, pnames=[], columnfmt=None):
             for j in range(nports):
                 colidx = 1 + (i * nports + j) * 2
                 if fmt == 'MAG-ANG':
-                    assert np.all(dat[:,colidx] >= 0)
+                    assert np.all((dat[:,colidx] >= 0) | (np.abs(dat[:,colidx]) < 1e-20))
                     assert np.all(-180 <= dat[:,colidx+1]) and np.all(dat[:colidx+1] <= 180)
                     Sdata[pidx][maskleft,i,j] = dat[:,colidx] * np.exp(1j*dat[:,colidx+1]/180*np.pi)
                 elif fmt == 'DB-ANG':
