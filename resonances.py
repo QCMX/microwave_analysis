@@ -384,5 +384,5 @@ def make_transmission_model():
     model = Model(transmission) #(f, fr, width, A, theta=0, delay=0, Aslope=0)
     model.set_param_hint('fr', min=0)
     model.set_param_hint('width', min=0)
-    model.set_param_hint('A', min=0)
+    model.set_param_hint('A', min=0, value=1)
     return model
