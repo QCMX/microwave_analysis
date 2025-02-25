@@ -5,7 +5,7 @@ Module with fit functions for typical resonance shapes in IQ plane.
 Also provides factory functions to make `lmfit` model instances with some
 parameter hints preset. Note that you can modify parameter hints afterwards.
 
-### Complex values
+**Complex values**
 
 The resonances we want to fit are complex valued (as usually measured by
 microwave instrumentation). Common fit functions like
@@ -18,14 +18,14 @@ This means that you have to also use `.view(float)` for the data supplied to
 `curve_fit()`. When evaluating the functions to retrieve the model, you have
 to undo this expansion by doing applying `.view(complex)`
 
-### Units
+**Units**
 
 The factors of $2\pi$ have to cancel out, you can either use quantities in
 angular units (i.e. $\omega$, $\kappa$, delay $t_d/2\pi$) or frequencies
 (i.e. $f$, $f_r$, width, delay $t_d$). Fit functions here are written in the
 latter.
 
-### Background signal
+**Background signaly**
 
 Allows a linear background signal with electrical delay $t_d$ (slope in phase)
 and amplitude slope $A_\text{slope}$.
@@ -37,7 +37,7 @@ the length of `p0`. So you can only vary the first few parameters of the
 function. The parameters are ordered so that the ones more likely to be fixed
 are in the end of the argument list.
 
-### Tips
+**Tips**
 
 For fit stability it is recommended to
 
@@ -182,8 +182,13 @@ def hanger_transmission(f, fr, external, internal, A, theta=0, delay=0, Aslope=0
     """
     Transmission in hanger geometry: a Lorentzian dip at resonance.
 
+    You might want to fit the complex conjugate of your signal if its phase has for
+    some reason the opposite sign of the model. The model has a phase that first
+    goes down then up.
+
     Different from the Lorentzian peak of the simple reflection measurement,
     the value of transmission on resonance is given by `external/(external+internal)`.
+    Furthermore the phase dependence is very different.
 
     Parameters
     ----------
@@ -221,6 +226,10 @@ def hanger_transmission_asym(f, fr, external, internal, phi, A, theta=0, delay=0
 
     The asymmetry usually comes from additional scattering/resonances along the
     microwave line or in the hanger transmission line.
+
+    You might want to fit the complex conjugate of your signal if its phase has for
+    some reason the opposite sign of the model. The model has a phase that first
+    goes down then up.
 
     The resonance frequency and external coupling factor depend on this
     additional scatterer.
