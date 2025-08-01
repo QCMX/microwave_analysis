@@ -25,12 +25,13 @@ angular units (i.e. $\omega$, $\kappa$, delay $t_d/2\pi$) or frequencies
 (i.e. $f$, $f_r$, width, delay $t_d$). Fit functions here are written in the
 latter.
 
-**Background signaly**
+**Background signal**
 
 Allows a linear background signal with electrical delay $t_d$ (slope in phase)
 and amplitude slope $A_\text{slope}$.
 
-$$A (1 + A_\text{slope} (f - f_r))  e^{i (2\pi t_d (f-f_r) + \theta)}$$
+.. math::
+    A (1 + A_\text{slope} (f - f_r))  e^{i (2\pi t_d (f-f_r) + \theta)}
 
 The number of fit parameters in `scipy.optimize.curve_fit()` is either all, or
 the length of `p0`. So you can only vary the first few parameters of the
@@ -221,18 +222,33 @@ def hanger_transmission(f, fr, external, internal, A, theta=0, delay=0, Aslope=0
 
 
 def hanger_transmission_asym(f, fr, external, internal, phi, A, theta=0, delay=0, Aslope=0):
-    """
+    r"""
     Transmission in hanger geometry with asymmetry.
 
     The asymmetry usually comes from additional scattering/resonances along the
-    microwave line or in the hanger transmission line.
+    microwave line or in the hanger transmission line. The resonance frequency
+    and external coupling factor depend on this additional scatterer.
+
+    We implement the fit function from Khalil et al.
+    (`Journ. Appl. Phys. 111 (2012) <http://doi.org/10.1063/1.3692073>`_)
+    that gives a robust estimate of the internal quality factor.
+
+    .. math::
+
+        S_{21} \propto 1 - \frac{|\hat\kappa_e| e^{i\phi}}{\text{Re}\,\hat\kappa_e + \kappa_i + 2j (f-f_r)}
+
+    with the real valued internal loss rate $\kappa_i$ and the complex valued
+    external coupling $\hat \kappa_e=|\hat\kappa_e| e^{i\phi}$.
+    The total coupling is $\kappa_\text{tot} = \text{Re}\,\hat\kappa_e + \kappa_i$
+    and real valued. The proportionality factor is the background correction
+    shown in the module documentation.
+
+    Remember that if $f$ and $f_r$ are in angular frequencies (i.e. $\omega$),
+    then also $\kappa$. If they are in actual frequencies, both are.
 
     You might want to fit the complex conjugate of your signal if its phase has for
     some reason the opposite sign of the model. The model has a phase that first
     goes down then up.
-
-    The resonance frequency and external coupling factor depend on this
-    additional scatterer.
 
     Parameters
     ----------
@@ -241,7 +257,7 @@ def hanger_transmission_asym(f, fr, external, internal, phi, A, theta=0, delay=0
     fr : float
         Resonance frequency
     external : float
-        External coupling
+        Absolute value of external coupling
     internal : float
         Internal losses
     phi : float
@@ -261,7 +277,8 @@ def hanger_transmission_asym(f, fr, external, internal, phi, A, theta=0, delay=0
         Data with Im values concatenated after Re values.
     """
     import numpy as np # for multiprocess
-    S = 1 - np.exp(1j*phi) * external / (external + internal + 2j*(f-fr))
+    total = internal + (external * np.exp(1j*phi)).real
+    S = 1 - np.exp(1j*phi) * external / (total + 2j*(f-fr))
     S *= A * (1+Aslope*(f-fr)) * np.exp(1j*(theta + delay*(f-fr)))
     return S.view(float)
 
