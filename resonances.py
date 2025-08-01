@@ -366,6 +366,9 @@ def make_reflection_model():
 
     Creates a new instance, so you can modify anything.
 
+    **The amplitude A is not bound to be larger than 0 and thus can be negative.**
+    This freedom seems to significantly improve the fit reliability.
+
     Returns
     -------
     model : lmfit.model.Model
@@ -374,7 +377,6 @@ def make_reflection_model():
     model.set_param_hint('fr', min=0)
     model.set_param_hint('external', min=0)
     model.set_param_hint('internal', min=0)
-    model.set_param_hint('A', min=0)
     return model
 
 
@@ -384,6 +386,9 @@ def make_asym_reflection_model():
 
     Creates a new instance, so you can modify anything.
 
+    **The amplitude A is not bound to be larger than 0 and thus can be negative.**
+    This freedom seems to significantly improve the fit reliability.
+
     Returns
     -------
     model : lmfit.model.Model
@@ -392,7 +397,6 @@ def make_asym_reflection_model():
     model.set_param_hint('fr', min=0)
     model.set_param_hint('external', min=0)
     model.set_param_hint('internal', min=0)
-    model.set_param_hint('A', min=0)
     model.set_param_hint('y', min=0)
     return model
 
@@ -403,6 +407,9 @@ def make_transmission_model():
 
     Creates a new instance, so you can modify anything.
 
+    **The amplitude A is not bound to be larger than 0 and thus can be negative.**
+    This freedom seems to significantly improve the fit reliability.
+
     Returns
     -------
     model : lmfit.model.Model
@@ -410,5 +417,4 @@ def make_transmission_model():
     model = Model(transmission) #(f, fr, width, A, theta=0, delay=0, Aslope=0)
     model.set_param_hint('fr', min=0)
     model.set_param_hint('width', min=0)
-    model.set_param_hint('A', min=0, value=1)
     return model
