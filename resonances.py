@@ -86,7 +86,7 @@ def reflection(f, fr, external, internal, A, theta=0, delay=0, Aslope=0):
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
     S = np.conj(((external-internal) + 2j*(f-fr)) / ((external+internal) - 2j*(f-fr)))
@@ -94,14 +94,33 @@ def reflection(f, fr, external, internal, A, theta=0, delay=0, Aslope=0):
     return S.view(float)
 
 
-def reflection_asym(f, fr, external, internal, A, phi, y, theta=0, delay=0, Aslope=0):
-    """
-    Asymmetric resonance in reflection measurement: a Lorentzian dip at resonance.
+def reflection_asym(f, fr, external, internal, A, b=0, phi=0, theta=0, delay=0, Aslope=0):
+    r"""
+    Asymmetric resonance in reflection measurement.
 
-    In the reflection case the asymmetry is non-trivial. The parameters of
-    the scatterer phi and y, are often strongly correlated with the other
-    parameters, which makes the fitting unstable, and gives large
-    uncertainties.
+    We implement the asymmetry like Eq (1) in Rieger et al.
+    (`Phys. Rev. Appl. 20 (2023) <https://doi.org/10.1103/PhysRevApplied.20.014059>`_)
+    and recommend to read this reference.
+    The bare $S_{11}$ function is not the exactly the same as in the paper,
+    but its negative complex conjugate, same as in `reflection()`.
+
+    .. math::
+        S_{11} = (1-b) S_{11}^{\text{bare}} + b e^{i\phi}
+
+    .. math::
+        S_{11}^{\text{bare}} = \frac{\kappa_e - \kappa_i + 2i (f-f_r)}{\kappa_e+\kappa_i-2i (f-fr)}
+
+    In the reflection case, the asymmetry is non-trivial. The parameters of
+    the scatterer / leakage (b and phi) are strongly correlated with the
+    couplings and amplitude, which makes the fitting fitting unstable,
+    and gives large uncertainties. Specify good initial values.
+
+    Additionally, the internal losses / quality factor has a systematic
+    uncertainty range that increases the more overcoupled the resonator is,
+    as explained in the reference above.
+
+    The resonance frequency is not as strongly correlated and can typically
+    still be fairly well estimated.
 
     Parameters
     ----------
@@ -115,10 +134,10 @@ def reflection_asym(f, fr, external, internal, A, phi, y, theta=0, delay=0, Aslo
         Internal losses
     A : float
         Amplitude
+    b : float
+        Asymmetry amplitude
     phi : float
         Asymmetry phase
-    y : float
-        Asymmetry, relative amplitude of scatterer
     theta : float, optional
         Phase offset. The default is 0.
     delay : float, optional
@@ -129,11 +148,12 @@ def reflection_asym(f, fr, external, internal, A, phi, y, theta=0, delay=0, Aslo
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
+    #print(fr, external, internal, A, b, phi, theta, delay, Aslope)
     Sbare = np.conj(((external-internal) + 2j*(f-fr)) / ((external+internal) - 2j*(f-fr)))
-    S = y + np.exp(1j*phi) * Sbare
+    S = (1-b) * Sbare + b * np.exp(1j*phi)
     S *= A * (1+Aslope*(f-fr)) * np.exp(1j*(theta + delay*(f-fr)))
     return S.view(float)
 
@@ -171,7 +191,7 @@ def transmission(f, fr, width, A, theta=0, delay=0, Aslope=0):
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
     S = np.conj(width / (width - 2j*(f-fr)))
@@ -213,7 +233,7 @@ def hanger_transmission(f, fr, external, internal, A, theta=0, delay=0, Aslope=0
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
     S = 1 - external / (external + internal + 2j*(f-fr))
@@ -274,7 +294,7 @@ def hanger_transmission_asym(f, fr, external, internal, phi, A, theta=0, delay=0
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
     total = internal + (external * np.exp(1j*phi)).real
@@ -310,7 +330,7 @@ def hanger_reflection(f, fr, width, A, theta=0, delay=0, Aslope=0):
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
     S = width / (width - 2j*(f-fr))
@@ -351,7 +371,7 @@ def hanger_reflection_asym(f, fr, width, A, phi, y=0, theta=0, delay=0, Aslope=0
     Returns
     -------
     float
-        Data with Im values concatenated after Re values.
+        Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
     Sbare = width / (width - 2j*(f-fr))
@@ -386,6 +406,10 @@ def make_asym_reflection_model():
 
     Creates a new instance, so you can modify anything.
 
+    Remember that the asymmetry values b and phi are very
+    strongly correlated with the couplings and amplitude.
+    Use good initial values and heed the uncertainties.
+
     **The amplitude A is not bound to be larger than 0 and thus can be negative.**
     This freedom seems to significantly improve the fit reliability.
 
@@ -397,7 +421,7 @@ def make_asym_reflection_model():
     model.set_param_hint('fr', min=0)
     model.set_param_hint('external', min=0)
     model.set_param_hint('internal', min=0)
-    model.set_param_hint('y', min=0)
+    model.set_param_hint('b', min=0)
     return model
 
 
