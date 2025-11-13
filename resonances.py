@@ -456,15 +456,14 @@ def make_transmission_model():
 
 def make_asym_hanger_transmission_model():
     """
-    `lmfit.model.Model` for `transmission()`
+    `lmfit.model.Model` for `hanger_transmission_asym()`
 
     Creates a new instance, so you can modify anything.
 
     You typically need to specify good initial values for
-    `fr, width, A, phi, theta` for a reasonable fit.
+    `fr, external, internal, A, phi, theta` for a reasonable fit.
 
-    **The amplitude A is not bound to be larger than 0 and thus can be negative.**
-    This freedom seems to significantly improve the fit reliability.
+    The amplitude A is not bound to be larger than 0 and thus can be negative.
 
     Returns
     -------
@@ -479,6 +478,20 @@ def make_asym_hanger_transmission_model():
 
 
 def make_asym_hanger_reflection_model():
+    """
+    `lmfit.model.Model` for `hanger_reflection_asym()`
+
+    Creates a new instance, so you can modify anything.
+
+    You typically need to specify good initial values for
+    `fr, width, A, phi, theta` for a reasonable fit.
+
+    The amplitude A is not bound to be larger than 0 and thus can be negative.
+
+    Returns
+    -------
+    model : lmfit.model.Model
+    """
     model = Model(hanger_reflection_asym)
     model.set_param_hint('fr', min=0)
     model.set_param_hint('width', min=0)
