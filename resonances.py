@@ -304,11 +304,18 @@ def hanger_transmission_asym(f, fr, external, internal, phi, A, theta=0, delay=0
 
 
 def hanger_reflection(f, fr, width, A, theta=0, delay=0, Aslope=0):
-    """
-    Hanger resonance in reflection: a Lorentzian peak at resonance.
+    r"""
+    Hanger resonance in reflection.
 
     Note that it is typically not possible to differentiate the coupling
-    into interal / external, because that is degenerate with amplitude.
+    into interal / external, because that is degenerate with an
+    uncalibrated amplitude. The ideal hanger reflection is
+
+    .. math::
+        S_{11} = \frac{\kappa_e}{\kappa_e+\kappa_i+2i(\omega-\omega_r)}
+
+    Instead we use a total width $\kappa_e+\kappa_i$ and the numerator
+    is absorbed into the amplitude.
 
     Parameters
     ----------
@@ -333,19 +340,22 @@ def hanger_reflection(f, fr, width, A, theta=0, delay=0, Aslope=0):
         Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
-    S = width / (width - 2j*(f-fr))
+    S = width / (width + 2j*(f-fr))
     S *= A * (1+Aslope*(f-fr)) * np.exp(1j*(theta + delay*(f-fr)))
     return S.view(float)
 
 
-def hanger_reflection_asym(f, fr, width, A, phi, y=0, theta=0, delay=0, Aslope=0):
+def hanger_reflection_asym(f, fr, width, A, b=0, phi=0, theta=0, delay=0, Aslope=0):
     """
-    Asymmetric hanger resonance in reflection: a Lorentzian peak at resonance.
+    Asymmetric hanger resonance in reflection.
 
-    In the reflection case the asymmetry is non-trivial. The parameters of
-    the scatterer phi and y, are often strongly correlated with the other
-    parameters, which makes the fitting unstable, and gives large
-    uncertainties.
+    While not explitictly discussed in Rieger et al.
+    (`Phys. Rev. Appl. 20 (2023) <https://doi.org/10.1103/PhysRevApplied.20.014059>`_)
+    we apply the same correction as in their Eq (1).
+    The same warnings about strong correlation and
+    large uncertainties apply.
+
+    The bare $S_{11}$ is the same as in `hanger_reflection()`.
 
     Parameters
     ----------
@@ -357,10 +367,10 @@ def hanger_reflection_asym(f, fr, width, A, phi, y=0, theta=0, delay=0, Aslope=0
         Total width
     A : float
         Amplitude
+    b : float
+        Asymmetry amplitude
     phi : float
         Asymmetry phase
-    y : float
-        Asymmetry, scattering amplitude
     theta : float, optional
         Phase offset. The default is 0.
     delay : float, optional
@@ -374,8 +384,8 @@ def hanger_reflection_asym(f, fr, width, A, phi, y=0, theta=0, delay=0, Aslope=0
         Complex valued scattering parameter in `.view(float)` format.
     """
     import numpy as np # for multiprocess
-    Sbare = width / (width - 2j*(f-fr))
-    S = y + np.exp(1j*phi) * Sbare
+    Sbare = width / (width + 2j*(f-fr))
+    S = (1-b) * Sbare + b * np.exp(1j*phi)
     S *= A * (1+Aslope*(f-fr)) * np.exp(1j*(theta + delay*(f-fr)))
     return S.view(float)
 
@@ -441,4 +451,36 @@ def make_transmission_model():
     model = Model(transmission) #(f, fr, width, A, theta=0, delay=0, Aslope=0)
     model.set_param_hint('fr', min=0)
     model.set_param_hint('width', min=0)
+    return model
+
+
+def make_asym_hanger_transmission_model():
+    """
+    `lmfit.model.Model` for `transmission()`
+
+    Creates a new instance, so you can modify anything.
+
+    You typically need to specify good initial values for
+    `fr, width, A, phi, theta` for a reasonable fit.
+
+    **The amplitude A is not bound to be larger than 0 and thus can be negative.**
+    This freedom seems to significantly improve the fit reliability.
+
+    Returns
+    -------
+    model : lmfit.model.Model
+    """
+    model = Model(hanger_transmission_asym)
+    model.set_param_hint('fr', min=0)
+    model.set_param_hint('external', min=0)
+    model.set_param_hint('internal', min=0)
+    model.set_param_hint('phi', value=0)
+    return model
+
+
+def make_asym_hanger_reflection_model():
+    model = Model(hanger_reflection_asym)
+    model.set_param_hint('fr', min=0)
+    model.set_param_hint('width', min=0)
+    model.set_param_hint('b', min=0)
     return model
