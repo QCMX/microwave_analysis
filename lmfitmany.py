@@ -43,14 +43,83 @@ def lmfit_many(lmmodel, data, p0=None, print_report=False, **hints):
     """
     Fit lmmodel along last axis of `data`.
 
+    Exceptions in fitting are silently printed to stdout.
+    The returned data will be numpy.nan for this data point.
+
+    Parameters
+    ----------
+    lmmodel : lmfit.model.Model
+        The model to fit
+    data : numpy.ndarray
+        Data to fit. Last axis will be first argument of `lmfit.model.Model.fit()`
+    p0 : dict
+        Dictionary of parameters to use in fit. The default is None (ie. inferred by lmfit).
+        Keys correspend to parameter names. Values can be scalar or an array,
+        but must be broadcastable to data.shape[:-1].
+    print_report : bool, optional
+        If true will print the lmfit `fit_report()` to stdout.
+        The default is False.
+    **hints :
+        Additional keyword arguments will be passed directly to the model's fit
+        function.
+
+    Returns
+    -------
+    pbest : dict[str: numpy.ndarray]
+        Best fit values. dict with parameter names as keys.
+    pbesterr : dict[str: numpy.ndarray]
+        Uncertainties. dict with parameter names as keys.
+    lmres : list[tuple[tuple[int], lmfit.model.ModelResult]]
+        `lmfit.model.ModelResult` for each fit.
+        List of 2-tuples of (idx, res). `idx` is the a tuple indexing the dataset
+        in `data`. `res` is the `ModelResult`.
+    exceptions : list[tuple[tuple[int], Exception]]
+        Exceptions that occured during fit.
+    """
+    # broadcast p0
+    fullp0 = {}
+    for key in p0:
+        fullp0[key] = np.broadcast_to(p0[key], data.shape[:-1])
+
+    outshape = data.shape[:-1]
+    pbest = {
+        pname: np.full(outshape, np.nan)
+        for pname in lmmodel.param_names}
+    pbesterr = {
+        pname: np.full(outshape, np.nan)
+        for pname in lmmodel.param_names}
+    exceptions = []
+    lmres = []
+    for idx in np.ndindex(data.shape[:-1]):
+        try:
+            params = lmmodel.make_params(**{key: fullp0[key][idx] for key in fullp0})
+            res = lmmodel.fit(data[idx], params, **hints)
+            lmres.append((idx, res))
+            if print_report:
+                print(res.fit_report(show_correl=False))
+            if not res.success: continue
+            params = res.params
+            for pname in lmmodel.param_names:
+                pbest[pname][idx] = params[pname]._val
+                pbesterr[pname][idx] = params[pname].stderr or np.nan
+        except Exception as e:
+            print("EXCEPTION:", idx, repr(e))
+            exceptions.append((idx, e))
+    return pbest, pbesterr, lmres, exceptions
+
+
+def lmfit_many_legacy(lmmodel, data, p0=None, print_report=False, **hints):
+    """
+    Fit lmmodel along last axis of `data`.
+
     Returns both the lmfit ModelResult and a numpy.ndarray for each
-    parameter name.
+    parameter name with ufloats for value and uncertainty.
+
+    Initial parameters must be lmfit Parameter object,
+    which is cumbersome, therefore became legacy function.
 
     Exceptions in fitting are silently printed to stdout.
     The returned data will be numpy.nan for this data.
-
-    TODO: don't use ufloat but return separate arrays for best value and
-    uncertainty. Cleaner, faster, smaller.
 
     Parameters
     ----------
